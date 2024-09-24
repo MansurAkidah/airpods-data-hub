@@ -78,6 +78,37 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+        .airpods-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+      }
+      
+      .airpods-table th, .airpods-table td {
+          border: 1px solid #ddd;
+          padding: 8px;
+          text-align: left;
+      }
+      
+      .airpods-table th {
+          background-color: #f2f2f2;
+          font-weight: bold;
+      }
+      
+      .airpods-table tr:nth-child(even) {
+          background-color: #f9f9f9;
+      }
+      
+      .airpods-table .image-container {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+      }
+      
+      .airpods-table ul {
+          padding-left: 20px;
+          margin: 0;
+      }
     </style>
 </head>
 <body>
@@ -113,7 +144,7 @@
             <label for="images">Image URLs (comma-separated):</label>
             <textarea id="images" data-bind="value: images"></textarea>
         </div>
-        <!-- <button id="addBtn" data-bind="click: addAirPods">Add AirPods</button> -->
+        <button id="addBtn" data-bind="click: addAirPods">Add AirPods</button>
     </div>
     
     <div class="section">
@@ -156,7 +187,7 @@
             <label for="updateImages">Image URLs (comma-separated):</label>
             <textarea id="updateImages" data-bind="value: updateImages"></textarea>
         </div>
-        <!-- <button id="updateBtn" data-bind="click: updateAirPods">Update AirPods</button> -->
+        <button id="updateBtn" data-bind="click: updateAirPods">Update AirPods</button>
     </div>
 
 
@@ -196,7 +227,6 @@
         // Knockout ViewModel
         function ViewModel() {
             var self = this;
-
             // Observables
             self.email = ko.observable("");
             self.password = ko.observable("");
@@ -204,7 +234,7 @@
             self.saySomething = ko.observable("");
             self.favouriteFood = ko.observable("");
             self.getUsername = ko.observable("");
-
+            // Observable properties for AirPods data
             self.productName = ko.observable("");
             self.price = ko.observable("");
             self.description = ko.observable("");
@@ -213,6 +243,7 @@
             self.specs = ko.observable("");
             self.images = ko.observable("");
             self.getProductName = ko.observable("");
+            // Observable properties for updating AirPods
             self.updateProductName = ko.observable("");
             self.updatePrice = ko.observable("");
             self.updateDescription = ko.observable("");
@@ -220,8 +251,7 @@
             self.updateQuantity = ko.observable("");
             self.updateSpecs = ko.observable("");
             self.updateImages = ko.observable("");
-
-
+            
             this.AirPodsList = ko.observable([
               { productName: 'AirPods Max', price: 3500, description: 'Immerse yourself in a symphony of sound with AirPods Max - Over-Ear High-Fidelity Headphones.', 
                 image: [
@@ -525,34 +555,53 @@
                 });
             };
             // Function to get AirPods data from Firebase
-            self.getAirPodsData = function() {
+            this.getAirPodsData = function() {
                 const dbRef = ref(db);
                 get(child(dbRef, "airpods")).then((snapshot) => {
                     if (snapshot.exists()) {
                         const airPodsData = snapshot.val();
                         let htmlContent = '<h2>AirPods Data:</h2>';
                         debugger;
+                        htmlContent += `
+                        <table class="airpods-table">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Price</th>
+                                    <th>Description</th>
+                                    <th>In Stock</th>
+                                    <th>Quantity</th>
+                                    <th>Specifications</th>
+                                    <th>Images</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
                         Object.values(airPodsData).forEach((item, index) => {
-                            htmlContent += `
-                                <div class="airpods-item">
-                                    <h3>${item.productName}</h3>
-                                    <p><strong>Price:</strong> Ksh ${item.price}</p>
-                                    <p><strong>Description:</strong> ${item.description}</p>
-                                    <p><strong>In Stock:</strong> ${item.inStock ? 'Yes' : 'No'}</p>
-                                    <p><strong>Quantity:</strong> ${item.quantity}</p>
-                                    <h4>Specifications:</h4>
+                          htmlContent += `
+                            <tr class="airpods-item">
+                                <td>${item.productName}</td>
+                                <td>Ksh ${item.price}</td>
+                                <td>${item.description}</td>
+                                <td>${item.inStock ? 'Yes' : 'No'}</td>
+                                <td>${item.quantity}</td>
+                                <td>
                                     <ul>
                                         ${item.specs.map(spec => `<li>${spec}</li>`).join('')}
                                     </ul>
-                                    <h4>Images:</h4>
+                                </td>
+                                <td>
                                     <div class="image-container">
-                                        ${item.image.map(img => `<img src="${img}" alt="${item.productName}" style="width: 100px; height: auto; margin: 5px;object-fit:contain;">`).join('')}
+                                        ${item.image.map(img => `<img src="${img}" alt="${item.productName}" style="width: 50px; height: auto; margin: 2px; object-fit: contain;">`).join('')}
                                     </div>
-                                </div>
-                                <hr>
-                            `;
+                                </td>
+                            </tr>
+                        `;
                         });
-        
+                        htmlContent += `
+                              </tbody>
+                          </table>
+                          `;
                         document.getElementById('airPodsContainer').innerHTML = htmlContent;
                     } else {
                         debugger;
@@ -564,7 +613,7 @@
                 });
             };
             // Save function
-            self.save = function() {
+            this.save = function() {
                 if(!confirm("Are you sure you want to save this user?")) return;
 
                 set(ref(db, 'users/' + self.username()), {
@@ -580,9 +629,8 @@
                     alert("Error: " + er.message);
                 });
             };
-
             // Get Data function
-            self.getData = function() {
+            this.getData = function() {
                 const dbRef = ref(db);
                 debugger;
                 get(child(dbRef, "users/" + self.getUsername())).then((snapshot) => {
@@ -602,39 +650,36 @@
                     alert("Error: " + er.message);
                 });
             };
-
             // Update function
-            self.update = function() {
-                if(!confirm("Are you sure you want to update this user?")) return;
-
-                update(ref(db, 'users/' + self.username()), {
-                    email: self.email(),
-                    password: self.password(),
-                    Username: self.username(),
-                    say_something: self.saySomething(),
-                    favourite_food: self.favouriteFood()
-                }).then(() => {
-                    alert("User updated successfully");
-                    self.clearFields();
-                }).catch((er) => {
-                    alert("Error: " + er.message);
-                });
+            this.update = function() {
+              if(!confirm("Are you sure you want to update this user?")) return;
+              debugger;
+              update(ref(db, 'users/' + self.username()), {
+                  email: self.email(),
+                  password: self.password(),
+                  Username: self.username(),
+                  say_something: self.saySomething(),
+                  favourite_food: self.favouriteFood()
+              }).then(() => {
+                  alert("User updated successfully");
+                  self.clearFields();
+              }).catch((er) => {
+                  alert("Error: " + er.message);
+              });
             };
-
             // Delete function
-            self.delete = function() {
-                if(!confirm("Are you sure you want to delete this user?")) return;
-
-                remove(ref(db, 'users/' + self.username())).then(() => {
-                    alert("User removed successfully");
-                    self.clearFields();
-                }).catch((er) => {
-                    alert("Error: " + er.message);
-                });
+            this.delete = function() {
+              if(!confirm("Are you sure you want to delete this user?")) return;
+              debugger;
+              remove(ref(db, 'users/' + self.username())).then(() => {
+                  alert("User removed successfully");
+                  self.clearFields();
+              }).catch((er) => {
+                  alert("Error: " + er.message);
+              });
             };
-
             // Clear fields function
-            self.clearFields = function() {
+            this.clearFields = function() {
                 self.email("");
                 self.password("");
                 self.username("");
@@ -642,8 +687,56 @@
                 self.favouriteFood("");
                 self.getUsername("");
             };
+            // Function to add new AirPods
+            this.addAirPods = function() {
+                if(!confirm("Are you sure you want to add these AirPods?")) return;
+                debugger;
+                set(ref(db, 'airpods/' + self.productName()), {
+                    productName: self.productName(),
+                    price: self.price(),
+                    description: self.description(),
+                    inStock: self.inStock(),
+                    quantity: self.quantity(),
+                    specs: self.specs().split(/[\n,]/).map(item => item.trim()),
+                    image: self.images().split(',').map(item => item.trim())
+                }).then(() => {
+                    alert("AirPods added successfully");
+                    self.clearFields();
+                }).catch((er) => {
+                    alert("Error: " + er.message);
+                });
+            };
+            // Function to update existing AirPods
+            this.updateAirPods = function() {
+                if(!confirm("Are you sure you want to update these details?")) return;
+                debugger;
+                update(ref(db, 'airpods/' + self.updateProductName()), {
+                    productName: self.updateProductName(),
+                    price: self.updatePrice(),
+                    description: self.updateDescription(),
+                    inStock: self.updateInStock(),
+                    quantity: self.updateQuantity(),
+                    specs: self.updateSpecs().split(/[\n,]/).map(item => item.trim()),
+                    image: self.updateImages().split(',').map(item => item.trim())
+                }).then(() => {
+                  debugger;
+                    alert("AirPods updated successfully");
+                    self.clearUpdateFields();
+                }).catch((er) => {
+                    alert("Error: " + er.message);
+                });
+            };
+            // Function to clear update fields
+            self.clearUpdateFields = function() {
+                self.updateProductName("");
+                self.updatePrice(0);
+                self.updateDescription("");
+                self.updateInStock(true);
+                self.updateQuantity(0);
+                self.updateSpecs("");
+                self.updateImages("");
+            };
         }
-
         // Apply Knockout bindings
         ko.applyBindings(new ViewModel());
     </script>
