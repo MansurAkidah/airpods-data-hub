@@ -9,7 +9,6 @@
             font-family: Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f4f4f4;
@@ -19,6 +18,7 @@
             text-align: center;
         }
         .section {
+            grid-column: auto;
             background-color: #fff;
             border-radius: 8px;
             padding: 20px;
@@ -112,8 +112,15 @@
     </style>
 </head>
 <body>
-    <h1>Firebase CRUD Operations</h1>
-    
+    <!--<h1>Firebase CRUD Operations</h1>
+    <div class="section">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-black">01</div>
+        <div class="bg-grey">02</div>
+        <div class="bg-blue">03</div>
+        <div class="bg-black">04</div>
+      </div>
+    </div>
     <div class="section">
         <h2>Add New AirPods</h2>
         <div class="form-group">
@@ -191,38 +198,51 @@
     </div>
 
 
-    <!-- <div class="section">
-        <h2>Adding airpods</h2>
-        <button  data-bind="click: addAirPodsToFirebase">Add</button>
-    </div> -->
+    
     <div class="section" id="airPodsContainer">
         <h2>Get all airpods</h2>
         <button data-bind="click: getAirPodsData">Get AirPods Data</button>
+    </div>-->
+    <h1>Firebase CRUD Operations</h1> 
+   
+    
+    <div>
+        <button class="btn p-1" data-bind="click:authent">Login</button>
     </div>
+      <button id="logout" style="display:none;" data-bind="click:authent">Logout</button>
+
+
     <script src="knockout.js"></script>
     <script src="jQuery.js"></script>
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-analytics.js";
-        import { getDatabase, ref, child, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
-
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBh3PjQzIjwYNr3ipfaeSoDWSZ7atW0xY8",
-            authDomain: "trial-94be9.firebaseapp.com",
-            databaseURL: "https://trial-94be9-default-rtdb.firebaseio.com",
-            projectId: "trial-94be9",
-            storageBucket: "trial-94be9.appspot.com",
-            messagingSenderId: "357881326465",
-            appId: "1:357881326465:web:ff70ea649037d490639680",
-            measurementId: "G-44JEVEFF6K"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getDatabase();
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-analytics.js";
+      //<!-- Firebase Authentication -->
+      import { getAuth, signInWithRedirect, GoogleAuthProvider, signOut,getRedirectResult } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+      import { getDatabase, ref, child, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
+      
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+    
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyCBEiopHlZuD3oFSNfoPuKErDHLLRjWHL0",
+        authDomain: "g-hut-c5cb7.firebaseapp.com",
+        databaseURL: "https://g-hut-c5cb7-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "g-hut-c5cb7",
+        storageBucket: "g-hut-c5cb7.appspot.com",
+        messagingSenderId: "371084478028",
+        appId: "1:371084478028:web:22a9f14dae9ecc6afcd6e9",
+        measurementId: "G-FR2LKZSHYH"
+      };
+    
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const auth = getAuth(app);
+      const db = getDatabase();
 
         // Knockout ViewModel
         function ViewModel() {
@@ -251,6 +271,45 @@
             self.updateQuantity = ko.observable("");
             self.updateSpecs = ko.observable("");
             self.updateImages = ko.observable("");
+
+
+            this.authent = function(){
+              const provider = new GoogleAuthProvider();
+              debugger;
+              
+                signInWithRedirect(auth, provider)
+                    .catch((error) => {
+                      debugger;
+                        console.error('Error signing in with redirect:', error);
+                    });
+            }
+
+
+            getRedirectResult(auth)
+                .then((result) => {
+                    if (result) {
+                    debugger;
+                        console.log('User signed in:', result.user);
+                        document.getElementById('login').style.display = 'none';
+                        document.getElementById('logout').style.display = 'block';
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error handling redirect result:', error);
+                });
+            this.logout = function(){
+              debugger;
+              signOut(auth)
+                .then(() => {
+                    console.log('User signed out');
+                    debugger;
+                    document.getElementById('login').style.display = 'block';
+                    document.getElementById('logout').style.display = 'none';
+                })
+                .catch((error) => {
+                    console.error('Error signing out:', error);
+                });
+            }
             
             this.AirPodsList = ko.observable([
               { productName: 'AirPods Max', price: 3500, description: 'Immerse yourself in a symphony of sound with AirPods Max - Over-Ear High-Fidelity Headphones.', 
